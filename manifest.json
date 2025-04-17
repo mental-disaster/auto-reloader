@@ -1,0 +1,18 @@
+{
+    "manifest_version": 3,
+    "name": "auto_reloader",
+    "version": "1.0.0",
+    "description": "SR 페이지 리스트 화면 자동 리로더",
+    "permissions": ["scripting", "notifications"],
+    "host_permissions": ["<all_urls>"],
+    "content_scripts": [
+        {
+            "matches": ["http://masked/*Page.do"],
+            "js": ["reload.js"],
+            "run_at": "document_end"
+        }
+    ],
+    "background": {
+        "service_worker": "alert.js"
+    }
+}
