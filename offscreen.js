@@ -10,41 +10,45 @@ function check() {
     );
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=EUC-KR');
     xhr.onload = () => {
-        if (xhr.status === 200) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(xhr.responseText, 'text/html');
-            const incoming = doc.getElementById('txt').innerHTML;
-
-            // 기존 총 데이터 수
-            const total = Number(document.querySelector('#txt .data_tbl tbody tr td')?.textContent?.trim());
-            // 서버에서 받은 데이터 수
-            const newCount = Number(doc.querySelector('#txt .data_tbl tbody tr td').textContent?.trim());
-
-            if (total && total < newCount) {
-                // 기존 데이터 목록 추출
-                const existingValue = Array.from(document.querySelectorAll('#txt .bsn_list tbody tr'))
-                    .map(tr => tr.querySelector('td')?.textContent?.trim())
-                    .filter(Boolean);
-                const existingSet = new Set(existingValue);
-                // 서버에서 받은 데이터 목록 중 새로운 데이터만 필터링
-                const newRows = Array.from(doc.querySelectorAll('#txt .bsn_list tbody tr'))
-                    .map(tr => {
-                        const tds = tr.querySelectorAll('td');
-                        return {
-                            id: tds[0]?.textContent?.trim(),
-                            title: tds[3]?.textContent?.trim(),
-                        }
-                    })
-                    .filter(row => row.id && row.title && !existingSet.has(row.id));
-                // 신규 SR 메시지 발송
-                chrome.runtime.sendMessage({
-                    type: 'showNotification',
-                    message: newRows.map(v => v.title).join(', '),
-                });
+        try {
+            if (xhr.status === 200) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xhr.responseText, 'text/html');
+                const incoming = doc.getElementById('txt').innerHTML;
+    
+                // 기존 총 데이터 수
+                const total = Number(document.querySelector('#txt .data_tbl tbody tr td')?.textContent?.trim());
+                // 서버에서 받은 데이터 수
+                const newCount = Number(doc.querySelector('#txt .data_tbl tbody tr td').textContent?.trim());
+    
+                if (total && total < newCount) {
+                    // 기존 데이터 목록 추출
+                    const existingValue = Array.from(document.querySelectorAll('#txt .bsn_list tbody tr'))
+                        .map(tr => tr.querySelector('td')?.textContent?.trim())
+                        .filter(Boolean);
+                    const existingSet = new Set(existingValue);
+                    // 서버에서 받은 데이터 목록 중 새로운 데이터만 필터링
+                    const newRows = Array.from(doc.querySelectorAll('#txt .bsn_list tbody tr'))
+                        .map(tr => {
+                            const tds = tr.querySelectorAll('td');
+                            return {
+                                id: tds[0]?.textContent?.trim(),
+                                title: tds[3]?.textContent?.trim(),
+                            }
+                        })
+                        .filter(row => row.id && row.title && !existingSet.has(row.id));
+                    // 신규 SR 메시지 발송
+                    chrome.runtime.sendMessage({
+                        type: 'showNotification',
+                        message: newRows.map(v => v.title).join(', '),
+                    });
+                }
+    
+                // 서버에서 받아온 데이터로 교체
+                document.getElementById('txt').innerHTML = incoming;
             }
-
-            // 서버에서 받아온 데이터로 교체
-            document.getElementById('txt').innerHTML = incoming;
+        } catch (error) {
+            console.error('데이터 처리 중 오류 발생:', error);
         }
     };
     xhr.onerror = () => {
