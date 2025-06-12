@@ -8,3 +8,16 @@ chrome.runtime.onMessage.addListener((msg) => {
         });
     }
 });
+
+async function ensureOffscreenDocument() {
+    const exists = await chrome.offscreen.hasDocument();
+    if (!exists) {
+        await chrome.offscreen.createDocument({
+            url: 'offscreen.html',
+            reasons: ['DOM_PARSER'],
+            justification: 'SR 변경 감지 및 DOM 파싱',
+        });
+    }
+}
+
+ensureOffscreenDocument();

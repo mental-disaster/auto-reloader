@@ -1,7 +1,9 @@
 function listReload() {
-    const formElement = document.getElementById("pageForm");
-    if (formElement !== null) {
-        const formData = new FormData(formElement);
+    const pageFormElement = document.getElementById("pageForm");
+    const updateFormElement = document.getElementById("updateForm");
+    // update 화면에서는 화면을 업데이트 하지 않음
+    if (pageFormElement && !updateFormElement) {
+        const formData = new FormData(pageFormElement);
 
         const params = [];
         for (let [key, value] of formData.entries()) {
@@ -9,49 +11,31 @@ function listReload() {
             params.push(`${encodeURIComponent(key)}=${eucKrValue}`);
         }
     
+        // xhr 설정
         const xhr = new XMLHttpRequest();
-        xhr.open(formElement.method, formElement.action, true);
+        xhr.open(pageFormElement.method, pageFormElement.action, true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=EUC-KR');
         xhr.onload = () => {
             if (xhr.status === 200) {
+                // form을 제외한 데이터 영역 새로운 데이터로 교체
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(xhr.responseText, 'text/html');
-                const incoming = doc.getElementById('txt').innerHTML;
+                const summary = doc.querySelector('#txt .data_tbl').innerHTML;
+                const boardInfo = doc.querySelector('#txt .board_infoTop').innerHTML;
+                const table = doc.querySelector('#txt .bsn_list tbody').innerHTML;
+                const pagination = doc.querySelector('#txt .b_paging').innerHTML;
 
-                const total = Number(document.querySelector('#txt .data_tbl tbody tr td').textContent?.trim());
-                const newCount = Number(doc.querySelector('#txt .data_tbl tbody tr td').textContent?.trim());
-
-                if (total < newCount) {
-                    const existingValue = Array.from(document.querySelectorAll('#txt .bsn_list tbody tr'))
-                        .map(tr => tr.querySelector('td')?.textContent?.trim())
-                        .filter(Boolean);
-                    const existingSet = new Set(existingValue);
-                    const incomingRows = Array.from(doc.querySelectorAll('#txt .bsn_list tbody tr'))
-                        .map(tr => {
-                            const tds = tr.querySelectorAll('td');
-                            return {
-                                id: tds[0]?.textContent?.trim(),
-                                title: tds[3]?.textContent?.trim(),
-                            }
-                        })
-                        .filter(row => row.id && row.title);
-                    const newOnly = incomingRows.filter(row => !existingSet.has(row.id));
-                    chrome.runtime.sendMessage({
-                        type: 'showNotification',
-                        message: newOnly.map(v => v.title).join(', '),
-                    });
-                }
-
-                document.getElementById('txt').innerHTML = incoming;
-            } else {
-                location.reload();
+                document.querySelector('#txt .data_tbl').innerHTML = summary;
+                document.querySelector('#txt .board_infoTop').innerHTML = boardInfo;
+                document.querySelector('#txt .bsn_list tbody').innerHTML = table;
+                document.querySelector('#txt .b_paging').innerHTML = pagination;
             }
         }
         xhr.onerror = () => {
-            location.reload();
+            console.error('화면 새로고침 중 오류가 발생했습니다.');
         }
         xhr.send(params.join('&'));
     }
 }
 
-let reloader = setInterval(listReload, 10000);
+setInterval(listReload, 5000);
