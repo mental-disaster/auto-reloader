@@ -1,8 +1,7 @@
 function listReload() {
     const pageFormElement = document.getElementById("pageForm");
-    const updateFormElement = document.getElementById("updateForm");
-    // update 화면에서는 화면을 업데이트 하지 않음
-    if (pageFormElement && !updateFormElement) {
+    // 데이터 테이블이 없는 화면에서는 화면을 업데이트 하지 않음
+    if (pageFormElement && document.querySelector('#txt .data_tbl')) {
         const formData = new FormData(pageFormElement);
 
         const params = [];

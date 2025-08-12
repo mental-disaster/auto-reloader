@@ -1,9 +1,9 @@
 {
     "manifest_version": 3,
     "name": "auto_reloader",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "리스트 화면 자동 리로더",
-    "permissions": ["scripting", "notifications", "offscreen"],
+    "permissions": ["scripting", "notifications", "offscreen", "alarms"],
     "host_permissions": ["<all_urls>"],
     "content_scripts": [
         {
